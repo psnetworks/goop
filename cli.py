@@ -6,13 +6,19 @@ from goop import goop
 
 parser = argparse.ArgumentParser(description='Process user information')
 parser.add_argument('--query', '-q', type=str, help='Query parameter', required=True)
+parser.add_argument('--cookie', type=str, help='Facebook cookie')
 
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument('--pages', '-P', type=int, help='Total page count')
+group.add_argument('--page', '-p', type=int, help='Page index for retrieval')
+group.add_argument('--range', '-r', type=int, help='Range of page index', nargs=2)
 group.add_argument('--count', '-c', type=int, help='Total entries count')
 
 args = parser.parse_args()
-pages = args.pages or 1
+
+page = args.page
+custom_range = args.range
+pages = args.pages
 count = args.count
 query = args.query
 
@@ -21,13 +27,21 @@ white = '\033[97m'
 yellow = '\033[93m'
 end = '\033[0m'
 
-#cookie = '<your facebook cookie>'
-cookie ="sb=boLvXDSrzYhVnIKWXOFFW041; datr=boLvXPKbLlyVoB80_a3jBYga; c_user=100001279151010; xs=81%3AsekDgdXtTHvMpg%3A2%3A1559200373%3A9277%3A4202; dpr=1.125; ; spin=r.1001023063_b.trunk_t.1565064737_s.1_v.2_; fr=04L1QWkX5tO2cXBfm.AWUZ47IHTKAlNM_-5JktDQIYrxE.Bc7meN.yw.F1G.0.0.BdSP4i.AWUFvl3v; wd=1091x838; presence=EDvF3EtimeF1565064744EuserFA21B01279151010A2EstateFDutF1565064744973CEchFDp_5f1B01279151010F1CC"
+cookie = args.cookie or None #'<your facebook cookie>'
+if not cookie:
+    raise Exception("Add facebook cookie to use goop")
 
 if count:
-    pages = count
+    pages = range(count)
+elif pages:
+    pages = range(pages)
+elif page:
+    pages = range(page, page+1)
+elif custom_range:
+    start, end = custom_range
+    pages = range(start, end)
 
-for page in range(pages):
+for page in pages:
     result = goop.search(query, cookie, page=page, full=True, count=count)
 
     for each in result:
