@@ -17,7 +17,7 @@ def decode_html(string):
         new_string = new_string.replace(e, d)
     return new_string
 
-def parse(string):
+def parse(string, count):
     "extract and parse resutls"
     parsed = {}
     pattern = r'''<div><div class="[^"]+">
@@ -30,9 +30,11 @@ def parse(string):
     for match in matches:
         parsed[num] = {'url' : match.group(1), 'text' : match.group(2), 'summary' : match.group(3) or match.group(4)}
         num += 1
+        if count and count == num:
+            break
     return parsed
 
-def search(query, cookie, page=0, full=False):
+def search(query, cookie, page=0, full=False, count=None):
     """
     main function, returns parsed results
     Args:
@@ -57,5 +59,5 @@ def search(query, cookie, page=0, full=False):
     }
     response = requests.get('https://developers.facebook.com/tools/debug/echo/?q=%s' % escaped, headers=headers)
     cleaned_response = decode_html(response.text)
-    parsed = parse(cleaned_response)
+    parsed = parse(cleaned_response, count)
     return parsed
